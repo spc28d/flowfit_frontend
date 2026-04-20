@@ -1,0 +1,4 @@
+/* 전역 스타일 초기화 */
+* {
+  box-sizing: border-box;
+}
