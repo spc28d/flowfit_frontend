@@ -17,18 +17,7 @@ export default function UploadRegulation() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [session, setSession] = useState(() => getAuthSession());
-  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
-  const dragCounterRef = useRef(0);
-
-  const ACCEPTED_EXTENSIONS = ['.hwp', '.docx', '.pdf'];
-
-  function filterAcceptedFiles(files) {
-    return files.filter((file) => {
-      const name = (file.name || '').toLowerCase();
-      return ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext));
-    });
-  }
 
   useEffect(() => {
     function syncSession() {
@@ -122,58 +111,6 @@ export default function UploadRegulation() {
     }
   }
 
-  function handleDragEnter(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (uploading || !isLoggedIn) return;
-    dragCounterRef.current += 1;
-    if (event.dataTransfer?.types?.includes('Files')) {
-      setIsDragging(true);
-    }
-  }
-
-  function handleDragLeave(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounterRef.current -= 1;
-    if (dragCounterRef.current <= 0) {
-      dragCounterRef.current = 0;
-      setIsDragging(false);
-    }
-  }
-
-  function handleDragOver(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = uploading || !isLoggedIn ? 'none' : 'copy';
-    }
-  }
-
-  async function handleDrop(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    dragCounterRef.current = 0;
-    setIsDragging(false);
-
-    if (uploading || !isLoggedIn) return;
-
-    const droppedFiles = Array.from(event.dataTransfer?.files || []);
-    if (!droppedFiles.length) return;
-
-    const acceptedFiles = filterAcceptedFiles(droppedFiles);
-    if (!acceptedFiles.length) {
-      setError('지원하지 않는 파일 형식입니다. (.hwp, .docx, .pdf 만 업로드 가능)');
-      return;
-    }
-
-    if (acceptedFiles.length < droppedFiles.length) {
-      setError('지원하지 않는 파일은 제외하고 업로드합니다.');
-    }
-
-    await handleUpload(acceptedFiles);
-  }
-
   async function handleDelete(documentId) {
     if (!documentId || deletingId) return;
 
@@ -239,21 +176,11 @@ export default function UploadRegulation() {
             </span>
           </div>
 
-          <div
-            onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className={`mt-5 rounded-xl border border-dashed p-4 text-sm transition ${
-              isDragging
-                ? 'border-blue-500 bg-blue-100 ring-2 ring-blue-400 dark:border-blue-400 dark:bg-blue-900/40'
-                : 'border-blue-300 bg-blue-50/60 dark:border-blue-700 dark:bg-blue-950/20'
-            }`}
-          >
+          <div className="mt-5 rounded-xl border border-dashed border-blue-300 bg-blue-50/60 p-4 text-sm dark:border-blue-700 dark:bg-blue-950/20">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <span className="block font-medium text-gray-800 dark:text-gray-100">
-                  {isDragging ? '여기에 파일을 놓으세요' : '파일 선택 또는 드래그 앤 드롭'}
+                  파일 선택
                 </span>
                 <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
                   .hwp, .docx, .pdf 문서 업로드 가능
